@@ -28,5 +28,51 @@ class Api::V1::TransactionsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
   end
+
+  test "should update successfully" do
+    transaction = Transaction.last
+
+    transaction_params = {
+      id: transaction.id,
+      transaction: {
+        customer_id: "customer-10",
+      },
+    }
+    
+    put api_v1_transaction_url(transaction_params)
+
+    response_body = JSON.parse(response.body)
+
+    assert response_body["data"]["customer_id"] == transaction_params[:transaction][:customer_id]
+    assert_response :success
+  end
+
+  test "should fail if validation fails on update" do
+    transaction = Transaction.last
+
+    params = {
+      id: transaction.id,
+      transaction: {
+        amount_sent: -1,
+      },
+    }
+    
+    put api_v1_transaction_url(params)
+
+    response_body = JSON.parse(response.body)
+
+    assert response_body["error"] == "Could not update record"
+    assert_response :bad_request
+  end
+  
+  test "should delete transaction successfully" do
+    transaction = Transaction.last
+    delete api_v1_transaction_url(id: transaction.id)
+
+    response_body = JSON.parse(response.body)
+
+    assert response_body["message"] == "Transaction deleted successfully"
+    assert_response :success
+  end
 end
 
